@@ -3,32 +3,57 @@ import java.lang.Thread;
 public class ToneList extends Thread {
 
     private static int counter = 0;
+    private String name;
     private static String[] song;
-    private static final String SHARED_TONE = "do-octave";
+    // private static final String SHARED_TONE = "do-octave";
     private String[] tones;
 
 
-    public ToneList(String[] t) {
+    public ToneList(String[] t, String n) {
         this.tones = t;
+        this.name = n;
     }
 
-    public void run() {
+    public synchronized void run() {
         while (counter <= song.length) {
-            String tone = song[counter];
+            System.out.println(name);
+            int c = getCounter();
+            String tone = song[c];
             if (tone == "do-octave") {
-                this.wait();
-                this.notify();
-                playTone(tone);
-                this.notify();
+                System.out.println("DO-OCTAVE");
+                try
+                {
+                    this.notifyAll();
+                    this.wait();
+                    
+                    playTone(tone);
+                    counter++;
+                    this.notifyAll();
+                } catch (Exception e) {
+                    System.out.println("Exception occurred");
+                    System.out.println(e.getMessage());
+                }
+                
             }
             else if (isValidTone(tone)) {
                 playTone(tone);
-                counter++;
+                incrementCounter();
+                try {
+                    this.notifyAll();
+                    this.wait();
+                } catch (Exception e) {
+                    System.out.println("Wait Exception occurred");
+                }
             } else {
-                this.wait();
-                this.notify();
+                try {
+                    this.notifyAll();
+                    this.wait();
+                } catch (Exception e) {
+                    System.out.println("Wait exception occurred");
+                }
             }
         }
+        return;
     }
 
     public boolean isValidTone(String tone) {
@@ -52,5 +77,12 @@ public class ToneList extends Thread {
 
     public static void setSong(String[] songNotes) {
         song = songNotes;
+    }
+
+    private synchronized int getCounter() {
+        return counter;
+    }
+    private synchronized void incrementCounter() {
+        counter++;
     }
 }

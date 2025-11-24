@@ -1,10 +1,8 @@
 public class ToneSynchronizer {
     private ToneList tones1;
     private ToneList tones2;
-    //private String[] song;
 
     public ToneSynchronizer(String[] song) {
-        // this.song = song;
         String[] tl1 = {"do", "mi", "sol", "si", "do-octave"};
         String[] tl2 = {"re", "fa", "la", "do-octave"};
         this.tones1 = new ToneList(tl1, "thread1");
@@ -30,5 +28,6 @@ public class ToneSynchronizer {
         String[] toneSequence = {"do", "re", "mi", "fa", "sol", "la", "si", "do-octave"};
         ToneSynchronizer toneList = new ToneSynchronizer(toneSequence);
         toneList.playSong();
+
     }
 }

@@ -1,12 +1,17 @@
 import java.lang.Thread;
+import java.io.File;
 
 public class ToneList extends Thread {
 
-    private static int counter = 0;
-    private String name;
-    private static String[] song;
-    // private static final String SHARED_TONE = "do-octave";
-    private String[] tones;
+    private static Object LOCK = new Object(); // Generic object used to .wait() and .notify() threads to synchronize them
+    private static int COUNTER = 0; // Counter of the song
+    private static FilePlayer filePlayer = new FilePlayer(); // File player to play the tone
+    private static int MODE = 2; // Decides whether we log the tone or play the tone. 0 = log, 1 = play 2 = both;
+
+    private String name; // was mainly used for debugging
+
+    private static String[] song; // Static variable = shared song among all threads.
+    private String[] tones; // The tones allowed for the thread
 
 
     public ToneList(String[] t, String n) {
@@ -14,21 +19,28 @@ public class ToneList extends Thread {
         this.name = n;
     }
 
-    public synchronized void run() {
-        while (counter <= song.length) {
-            System.out.println(name);
+    public void run() {
+        synchronized (LOCK) {
+            int lastCounter = 0;
+        while (COUNTER <= song.length && lastCounter != song.length) {
             int c = getCounter();
             String tone = song[c];
             if (tone == "do-octave") {
-                System.out.println("DO-OCTAVE");
                 try
                 {
-                    this.notifyAll();
-                    this.wait();
+                    LOCK.notify();
+                    LOCK.wait();
                     
-                    playTone(tone);
-                    counter++;
-                    this.notifyAll();
+                    if (MODE == 2) {logTone(tone); playTone(tone);}
+                    else if (MODE == 0) {logTone(tone);}
+                    else {playTone(tone);}
+                    lastCounter = song.length;
+
+                    // Small delay when playing so we can actually hear the tone before the program terminates.
+                    // the two do-octaves still play at functionally the same time
+                    if (MODE != 0 && name == "thread1") {sleep(500);} 
+
+                    LOCK.notify();
                 } catch (Exception e) {
                     System.out.println("Exception occurred");
                     System.out.println(e.getMessage());
@@ -36,22 +48,25 @@ public class ToneList extends Thread {
                 
             }
             else if (isValidTone(tone)) {
-                playTone(tone);
+                if (MODE == 2) {logTone(tone); playTone(tone);}
+                else if (MODE == 0) {logTone(tone);}
+                else {playTone(tone);}
                 incrementCounter();
                 try {
-                    this.notifyAll();
-                    this.wait();
+                    LOCK.notify();
+                    LOCK.wait();
                 } catch (Exception e) {
                     System.out.println("Wait Exception occurred");
                 }
             } else {
                 try {
-                    this.notifyAll();
-                    this.wait();
+                    LOCK.notify();
+                    LOCK.wait();
                 } catch (Exception e) {
                     System.out.println("Wait exception occurred");
                 }
             }
+        }
         }
         return;
     }
@@ -67,12 +82,24 @@ public class ToneList extends Thread {
         return found;
     }
 
-    public void playTone(String tone) {
+    public void logTone(String tone) {
         System.out.println(tone);
     }
 
+    public void playTone(String tone) {
+        try {
+        String filePath = System.getProperty("user.dir") + 
+                            File.separator + "Sounds"+
+                            File.separator+tone+".wav";
+        filePlayer.play(filePath);
+        if (tone != "do-octave") {sleep(500);} // do-octave has its own delay
+        } catch (Exception e) {
+            System.out.println("CAN'T SLEEP");
+        }
+    }
+
     public static void resetCounter() {
-        counter = 0;
+        COUNTER = 0;
     }
 
     public static void setSong(String[] songNotes) {
@@ -80,9 +107,15 @@ public class ToneList extends Thread {
     }
 
     private synchronized int getCounter() {
-        return counter;
+        return COUNTER;
     }
     private synchronized void incrementCounter() {
-        counter++;
+        COUNTER++;
+    }
+
+    public static void switchMode() {
+        if (MODE == 0) {MODE = 1;}
+        else if (MODE == 1) {MODE = 2;}
+        else {MODE = 0;}
     }
 }

@@ -29,5 +29,22 @@ public class ToneSynchronizer {
         ToneSynchronizer toneList = new ToneSynchronizer(toneSequence);
         toneList.playSong();
 
-    }
+        System.out.println("\n--- Playing Twinkle Twinkle Little Star ---\n");
+
+        String[] twinkle = {
+            "do","do","sol","sol","la","la","sol",
+            "fa","fa","mi","mi","re","re","do",
+
+            "sol","sol","fa","fa","mi","mi","re",
+            "sol","sol","fa","fa","mi","mi","re",
+
+            "do","do","sol","sol","la","la","sol",
+            "fa","fa","mi","mi","re","re","do"
+        };
+
+        ToneList.resetCounter(); //Reset counter
+        ToneSynchronizer tw = new ToneSynchronizer(twinkle);
+        tw.playSong();
+
+        }
 }

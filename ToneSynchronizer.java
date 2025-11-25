@@ -28,6 +28,5 @@ public class ToneSynchronizer {
         String[] toneSequence = {"do", "re", "mi", "fa", "sol", "la", "si", "do-octave"};
         ToneSynchronizer toneList = new ToneSynchronizer(toneSequence);
         toneList.playSong();
-
     }
 }

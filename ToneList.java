@@ -21,10 +21,9 @@ public class ToneList extends Thread {
 
     public void run() {
         synchronized (LOCK) {
-            int lastCounter = 0;
-        while (COUNTER <= song.length && lastCounter != song.length) {
-            int c = getCounter();
-            String tone = song[c];
+        while (COUNTER <= song.length) {
+            if (COUNTER == song.length) {LOCK.notifyAll(); return;}
+            String tone = song[COUNTER];
             if (tone == "do-octave") {
                 try
                 {
@@ -34,13 +33,13 @@ public class ToneList extends Thread {
                     if (MODE == 2) {logTone(tone); playTone(tone);}
                     else if (MODE == 0) {logTone(tone);}
                     else {playTone(tone);}
-                    lastCounter = song.length;
 
                     // Small delay when playing so we can actually hear the tone before the program terminates.
                     // the two do-octaves still play at functionally the same time
                     if (MODE != 0 && name == "thread1") {sleep(500);} 
 
                     LOCK.notify();
+                    incrementCounter();
                 } catch (Exception e) {
                     System.out.println("Exception occurred");
                     System.out.println(e.getMessage());
@@ -106,9 +105,6 @@ public class ToneList extends Thread {
         song = songNotes;
     }
 
-    private synchronized int getCounter() {
-        return COUNTER;
-    }
     private synchronized void incrementCounter() {
         COUNTER++;
     }

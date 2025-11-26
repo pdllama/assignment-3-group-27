@@ -24,7 +24,12 @@ public class ToneList extends Thread {
         while (COUNTER <= song.length) {
             if (COUNTER == song.length) {LOCK.notifyAll(); return;}
             String tone = song[COUNTER];
-            if (tone == "do-octave") {
+            if (tone == "pause") { 
+                // This is if we want a little pause before the next note. Used for twinkle little star.
+                try{Thread.sleep(500);} catch(Exception e) {System.out.println("Couldn't pause");}
+                incrementCounter();
+            }
+            else if (tone == "do-octave") {
                 try
                 {
                     LOCK.notify();
